@@ -22,7 +22,7 @@ FEEDS = [
     },
     {
         "label": "📈 경제/금융 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+금융+증시&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=경제+OR+금리+OR+환율+OR+코스피+OR+증시+OR+한국은행&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
