@@ -12,7 +12,7 @@ WEBHOOK_URL = os.environ['TEAMS_WEBHOOK_URL']
 FEEDS = [
     {
         "label": "🇰🇷 국내 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC투자+OR+스타트업+OR+시리즈A+OR+시리즈B+OR+투자유치&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC투자+OR+M&A+OR+한국벤처투자&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 7
     },
     {
@@ -27,7 +27,7 @@ FEEDS = [
     },
     {
         "label": "🌐 글로벌 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=venture+capital+OR+startup+funding+OR+series+A+OR+series+B+OR+unicorn&hl=en&gl=US&ceid=US:en",
+        "url": "https://news.google.com/rss/search?q=venture+capital+OR+startup+funding+OR+unicorn&hl=en&gl=US&ceid=US:en",
         "max_items": 4
     }
 ]
