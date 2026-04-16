@@ -12,19 +12,23 @@ WEBHOOK_URL = os.environ['TEAMS_WEBHOOK_URL']
 FEEDS = [
     {
         "label": "🇰🇷 국내 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC+OR+스타트업+OR+투자&hl=ko&gl=KR&ceid=KR:ko"
+        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC투자+OR+스타트업+OR+시리즈A+OR+시리즈B+OR+투자유치&hl=ko&gl=KR&ceid=KR:ko",
+        "max_items": 7
     },
     {
-        "label": "🎬 국내 영화 업계 뉴스",
-        "url": "https://news.google.com/rss/search?q=영화+OR+영화제작+OR+OTT+OR+콘텐츠&hl=ko&gl=KR&ceid=KR:ko"
+        "label": "🎬 영화 업계 뉴스",
+        "url": "https://news.google.com/rss/search?q=영화+OR+OTT+OR+넷플릭스+OR+드라마+OR+콘텐츠+OR+박스오피스&hl=ko&gl=KR&ceid=KR:ko",
+        "max_items": 5
+    },
+    {
+        "label": "📈 경제/금융 뉴스",
+        "url": "https://news.google.com/rss/search?q=경제+OR+금리+OR+환율+OR+코스피+OR+나스닥+OR+Fed+OR+한국은행&hl=ko&gl=KR&ceid=KR:ko",
+        "max_items": 5
     },
     {
         "label": "🌐 글로벌 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=venture+capital+startup+funding&hl=en&gl=US&ceid=US:en"
-    },
-    {
-        "label": "📈 주요 경제 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+OR+금리+OR+환율+OR+주식+OR+증시&hl=ko&gl=KR&ceid=KR:ko"
+        "url": "https://news.google.com/rss/search?q=venture+capital+OR+startup+funding+OR+series+A+OR+series+B+OR+unicorn&hl=en&gl=US&ceid=US:en",
+        "max_items": 4
     }
 ]
 
@@ -47,7 +51,7 @@ def get_news(feed_url, max_items=5):
 message = f"📊 오늘의 뉴스 ({today})\n\n"
 
 for feed in FEEDS:
-    news = get_news(feed['url'])
+    news = get_news(feed['url'], feed['max_items'])
     message += f"{feed['label']}\n"
     if news:
         for i, (title, link) in enumerate(news, 1):
