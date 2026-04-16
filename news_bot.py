@@ -22,7 +22,7 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
-def get_news(feed_url, max_items=5):
+def get_news(feed_url, max_items=10):
     feed = feedparser.parse(feed_url)
     results = []
     for entry in feed.entries:
