@@ -17,7 +17,7 @@ FEEDS = [
     },
     {
         "label": "🎬 영화 업계 뉴스",
-        "url": "https://news.google.com/rss/search?q=영화+콘텐츠+OTT&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=영화+OR+OTT+OR+넷플릭스+OR+드라마+OR+콘텐츠+OR+박스오피스&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
