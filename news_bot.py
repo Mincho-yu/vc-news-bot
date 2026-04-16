@@ -48,5 +48,5 @@ for feed in FEEDS:
         message += "오늘 뉴스가 없습니다.\n"
     message += "\n"
 
-requests.post(WEBHOOK_URL, json={"text": message})
+requests.post(WEBHOOK_URL, json={"type": "message", "text": message})
 print("전송 완료!")
