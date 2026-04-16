@@ -22,7 +22,7 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
-def get_news(feed_url, max_items=10):
+def get_news(feed_url, max_items=7):
     feed = feedparser.parse(feed_url)
     results = []
     for entry in feed.entries:
@@ -31,7 +31,7 @@ def get_news(feed_url, max_items=10):
             continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
             continue
-        results.append(entry.title)
+        results.append((entry.title, entry.get('link', '')))
         if len(results) >= max_items:
             break
     return results
@@ -42,8 +42,8 @@ for feed in FEEDS:
     news = get_news(feed['url'])
     message += f"{feed['label']}\n"
     if news:
-        for i, title in enumerate(news, 1):
-            message += f"{i}. {title}\n"
+        for i, (title, link) in enumerate(news, 1):
+            message += f"{i}. [{ title}]({link})\n"
     else:
         message += "오늘 뉴스가 없습니다.\n"
     message += "\n"
