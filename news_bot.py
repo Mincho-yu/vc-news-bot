@@ -48,5 +48,25 @@ for feed in FEEDS:
         message += "오늘 뉴스가 없습니다.\n"
     message += "\n"
 
-requests.post(WEBHOOK_URL, json={"type": "message", "text": message})
+payload = {
+    "type": "message",
+    "attachments": [
+        {
+            "contentType": "application/vnd.microsoft.card.adaptive",
+            "content": {
+                "type": "AdaptiveCard",
+                "version": "1.2",
+                "body": [
+                    {
+                        "type": "TextBlock",
+                        "text": message,
+                        "wrap": True
+                    }
+                ]
+            }
+        }
+    ]
+}
+
+requests.post(WEBHOOK_URL, json=payload)
 print("전송 완료!")
