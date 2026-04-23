@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 import pytz
 import os
+from difflib import SequenceMatcher
 
 KST = pytz.timezone('Asia/Seoul')
 today = datetime.now(KST).strftime('%Y-%m-%d')
@@ -17,12 +18,12 @@ FEEDS = [
     },
     {
         "label": "🎬 영화 업계 뉴스",
-        "url": "https://news.google.com/rss/search?q=영화+OR+OTT+OR+넷플릭스+OR+드라마+OR+콘텐츠+OR+박스오피스&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=영화+콘텐츠+OTT&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
         "label": "📈 경제/금융 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+OR+금리+OR+환율+OR+코스피+OR+증시+OR+한국은행&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=경제+금융+증시&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
@@ -34,6 +35,10 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
+def is_similar(a, b, threshold=0.6):
+    """두 제목이 유사한지 판단 (60% 이상 비슷하면 중복으로 처리)"""
+    return SequenceMatcher(None, a, b).ratio() > threshold
+
 def get_news(feed_url, max_items=5):
     feed = feedparser.parse(feed_url)
     results = []
@@ -42,6 +47,9 @@ def get_news(feed_url, max_items=5):
         if today not in pub and datetime.now(KST).strftime('%d %b %Y') not in pub:
             continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
+            continue
+        # 중복 제거: 이미 추가된 제목과 유사한지 검사
+        if any(is_similar(entry.title, t) for t, _ in results):
             continue
         results.append((entry.title, entry.get('link', '')))
         if len(results) >= max_items:
