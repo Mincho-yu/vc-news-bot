@@ -2,7 +2,7 @@ name: VC News Bot
 
 on:
   schedule:
-    - cron: '25 5 * * *'  # 한국시간 오전 9시 (UTC 0시)
+    - cron: '45 23 * * *'  # UTC 23:45 = 한국시간 08:45, 지연 감안해 9시쯤 도착
   workflow_dispatch:
 
 jobs:
