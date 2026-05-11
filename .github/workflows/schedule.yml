@@ -2,7 +2,7 @@ name: VC News Bot
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # UTC 0시 = 한국시간 오전 9시
+    - cron: '47 23 * * *'  # 한국시간 오전 8시 47분
   workflow_dispatch:
 
 jobs:
