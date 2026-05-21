@@ -1,9 +1,7 @@
 name: VC News Bot
 
 on:
-  schedule:
-    - cron: '07 0 * * *'  # 한국시간 오전 9시 7분
-  workflow_dispatch:
+  workflow_dispatch:  # 수동/외부 트리거만
 
 jobs:
   send-news:
