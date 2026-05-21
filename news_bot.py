@@ -3,7 +3,6 @@ import requests
 from datetime import datetime
 import pytz
 import os
-from difflib import SequenceMatcher
 
 KST = pytz.timezone('Asia/Seoul')
 today = datetime.now(KST).strftime('%Y-%m-%d')
@@ -35,10 +34,6 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
-def is_similar(a, b, threshold=0.6):
-    """두 제목이 유사한지 판단 (60% 이상 비슷하면 중복으로 처리)"""
-    return SequenceMatcher(None, a, b).ratio() > threshold
-
 def get_news(feed_url, max_items=5):
     feed = feedparser.parse(feed_url)
     results = []
@@ -47,9 +42,6 @@ def get_news(feed_url, max_items=5):
         if today not in pub and datetime.now(KST).strftime('%d %b %Y') not in pub:
             continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
-            continue
-        # 중복 제거: 이미 추가된 제목과 유사한지 검사
-        if any(is_similar(entry.title, t) for t, _ in results):
             continue
         results.append((entry.title, entry.get('link', '')))
         if len(results) >= max_items:
