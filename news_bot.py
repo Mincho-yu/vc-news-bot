@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 import pytz
 import os
+import re
 
 KST = pytz.timezone('Asia/Seoul')
 today = datetime.now(KST).strftime('%Y-%m-%d')
@@ -34,6 +35,31 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
+def get_keywords(title):
+    """제목에서 핵심 키워드만 추출 (조사/숫자/특수문자 제거, 2글자 이상 단어만)"""
+    # 언론사명 제거 (- 뒤쪽)
+    clean = title.split(' - ')[0]
+    # 특수문자 제거
+    clean = re.sub(r'[^\w\s가-힣a-zA-Z]', ' ', clean)
+    # 단어 분리 (2글자 이상만)
+    words = [w.lower() for w in clean.split() if len(w) >= 2]
+    return set(words)
+
+def is_duplicate(new_title, existing_titles, threshold=0.5):
+    """기존 제목들과 키워드가 50% 이상 겹치면 중복으로 판단"""
+    new_kw = get_keywords(new_title)
+    if not new_kw:
+        return False
+    for existing in existing_titles:
+        existing_kw = get_keywords(existing)
+        if not existing_kw:
+            continue
+        overlap = len(new_kw & existing_kw)
+        smaller = min(len(new_kw), len(existing_kw))
+        if smaller > 0 and overlap / smaller >= threshold:
+            return True
+    return False
+
 def get_news(feed_url, max_items=5):
     feed = feedparser.parse(feed_url)
     results = []
@@ -42,6 +68,8 @@ def get_news(feed_url, max_items=5):
         if today not in pub and datetime.now(KST).strftime('%d %b %Y') not in pub:
             continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
+            continue
+        if is_duplicate(entry.title, [t for t, _ in results]):
             continue
         results.append((entry.title, entry.get('link', '')))
         if len(results) >= max_items:
