@@ -13,22 +13,22 @@ WEBHOOK_URL = os.environ['TEAMS_WEBHOOK_URL']
 FEEDS = [
     {
         "label": "🇰🇷 국내 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=벤처캐피탈+스타트업+투자&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC+OR+스타트업투자&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 7
     },
     {
         "label": "🎬 영화 업계 뉴스",
-        "url": "https://news.google.com/rss/search?q=영화+콘텐츠+OTT&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=영화+OR+OTT+OR+드라마+OR+콘텐츠&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
         "label": "📈 경제/금융 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+금융+증시&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=경제+OR+금융+OR+증시+OR+코스피+OR+금리&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
         "label": "🌐 글로벌 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=venture+capital+startup+funding&hl=en&gl=US&ceid=US:en",
+        "url": "https://news.google.com/rss/search?q=venture+capital+OR+startup+funding+OR+VC&hl=en&gl=US&ceid=US:en",
         "max_items": 4
     }
 ]
@@ -36,17 +36,12 @@ FEEDS = [
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
 def get_keywords(title):
-    """제목에서 핵심 키워드만 추출 (조사/숫자/특수문자 제거, 2글자 이상 단어만)"""
-    # 언론사명 제거 (- 뒤쪽)
     clean = title.split(' - ')[0]
-    # 특수문자 제거
     clean = re.sub(r'[^\w\s가-힣a-zA-Z]', ' ', clean)
-    # 단어 분리 (2글자 이상만)
     words = [w.lower() for w in clean.split() if len(w) >= 2]
     return set(words)
 
-def is_duplicate(new_title, existing_titles, threshold=0.5):
-    """기존 제목들과 키워드가 50% 이상 겹치면 중복으로 판단"""
+def is_duplicate(new_title, existing_titles, threshold=0.7):
     new_kw = get_keywords(new_title)
     if not new_kw:
         return False
