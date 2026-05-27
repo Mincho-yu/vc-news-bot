@@ -35,6 +35,22 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
+# 광고/공지 필터링 키워드
+SPAM_KEYWORDS = [
+    '모집', '참가기업', '참가자', '신청', '접수', '공지', '안내',
+    '세미나', '컨퍼런스', '포럼', '웨비나', '간담회', '워크숍', '워크샵',
+    '개최', '주최', '주관', '후원', '특강', '강연',
+    '이벤트', '프로모션', '할인', '광고', '협찬',
+    '플랫 레터', '뉴스레터',
+    '공모', '시상', '시상식', '시상자', '수상',
+    '채용', '구인', '모집공고'
+]
+
+def is_spam(title):
+    """광고/공지/세미나 등 필터링"""
+    title_lower = title.lower()
+    return any(kw.lower() in title_lower for kw in SPAM_KEYWORDS)
+
 def get_keywords(title):
     clean = title.split(' - ')[0]
     clean = re.sub(r'[^\w\s가-힣a-zA-Z]', ' ', clean)
@@ -63,6 +79,8 @@ def get_news(feed_url, max_items=5):
         if today not in pub and datetime.now(KST).strftime('%d %b %Y') not in pub:
             continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
+            continue
+        if is_spam(entry.title):
             continue
         if is_duplicate(entry.title, [t for t, _ in results]):
             continue
