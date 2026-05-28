@@ -23,7 +23,7 @@ FEEDS = [
     },
     {
         "label": "📈 경제/금융 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+OR+금융+OR+증시+OR+코스피+OR+금리&hl=ko&gl=KR&ceid=KR:ko",
+        "url": "https://news.google.com/rss/search?q=경제+OR+증시+OR+코스피+OR+주식+OR+부동산+OR+환율+OR+실적+OR+자산운용+OR+채권&hl=ko&gl=KR&ceid=KR:ko",
         "max_items": 5
     },
     {
@@ -35,7 +35,6 @@ FEEDS = [
 
 BLOCKED = ['instagram.com', 'twitter.com', 'facebook.com']
 
-# 광고/공지 필터링 키워드
 SPAM_KEYWORDS = [
     '모집', '참가기업', '참가자', '신청', '접수', '공지', '안내',
     '세미나', '컨퍼런스', '포럼', '웨비나', '간담회', '워크숍', '워크샵',
@@ -47,7 +46,6 @@ SPAM_KEYWORDS = [
 ]
 
 def is_spam(title):
-    """광고/공지/세미나 등 필터링"""
     title_lower = title.lower()
     return any(kw.lower() in title_lower for kw in SPAM_KEYWORDS)
 
@@ -57,7 +55,7 @@ def get_keywords(title):
     words = [w.lower() for w in clean.split() if len(w) >= 2]
     return set(words)
 
-def is_duplicate(new_title, existing_titles, threshold=0.7):
+def is_duplicate(new_title, existing_titles, threshold=0.5):
     new_kw = get_keywords(new_title)
     if not new_kw:
         return False
@@ -74,10 +72,18 @@ def is_duplicate(new_title, existing_titles, threshold=0.7):
 def get_news(feed_url, max_items=5):
     feed = feedparser.parse(feed_url)
     results = []
+    now_kst = datetime.now(KST)
+    today_formats = [
+        now_kst.strftime('%Y-%m-%d'),
+        now_kst.strftime('%d %b %Y'),
+        now_kst.strftime('%a, %d %b %Y'),
+    ]
     for entry in feed.entries:
         pub = entry.get('published', '')
-        if today not in pub and datetime.now(KST).strftime('%d %b %Y') not in pub:
-            continue
+        if not any(t in pub for t in today_formats):
+            yesterday_utc = datetime.now(pytz.UTC).strftime('%d %b %Y')
+            if yesterday_utc not in pub:
+                continue
         if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
             continue
         if is_spam(entry.title):
