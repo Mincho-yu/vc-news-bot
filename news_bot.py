@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 import os
 import re
+import random
 
 KST = pytz.timezone('Asia/Seoul')
 today = datetime.now(KST).strftime('%Y-%m-%d')
@@ -13,22 +14,41 @@ WEBHOOK_URL = os.environ['TEAMS_WEBHOOK_URL']
 FEEDS = [
     {
         "label": "🇰🇷 국내 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=벤처캐피탈+OR+VC+OR+스타트업투자&hl=ko&gl=KR&ceid=KR:ko",
+        "urls": [
+            "https://news.google.com/rss/search?q=벤처캐피탈&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=스타트업+투자유치&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=시리즈A+OR+시리즈B&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=벤처투자+OR+엑셀러레이터&hl=ko&gl=KR&ceid=KR:ko"
+        ],
         "max_items": 7
     },
     {
         "label": "🎬 영화 업계 뉴스",
-        "url": "https://news.google.com/rss/search?q=영화+OR+OTT+OR+드라마+OR+콘텐츠&hl=ko&gl=KR&ceid=KR:ko",
+        "urls": [
+            "https://news.google.com/rss/search?q=영화+박스오피스&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=OTT+넷플릭스&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=드라마+제작&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=K콘텐츠+OR+한류&hl=ko&gl=KR&ceid=KR:ko"
+        ],
         "max_items": 5
     },
     {
         "label": "📈 경제/금융 뉴스",
-        "url": "https://news.google.com/rss/search?q=경제+OR+증시+OR+코스피+OR+주식+OR+부동산+OR+환율+OR+실적+OR+자산운용+OR+채권&hl=ko&gl=KR&ceid=KR:ko",
+        "urls": [
+            "https://news.google.com/rss/search?q=코스피+OR+증시&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=부동산+OR+아파트&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=금리+OR+환율&hl=ko&gl=KR&ceid=KR:ko",
+            "https://news.google.com/rss/search?q=기업실적+OR+자산운용&hl=ko&gl=KR&ceid=KR:ko"
+        ],
         "max_items": 5
     },
     {
         "label": "🌐 글로벌 VC 뉴스",
-        "url": "https://news.google.com/rss/search?q=venture+capital+OR+startup+funding+OR+VC&hl=en&gl=US&ceid=US:en",
+        "urls": [
+            "https://news.google.com/rss/search?q=venture+capital+funding&hl=en&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=startup+series+round&hl=en&gl=US&ceid=US:en",
+            "https://news.google.com/rss/search?q=unicorn+startup&hl=en&gl=US&ceid=US:en"
+        ],
         "max_items": 4
     }
 ]
@@ -69,28 +89,38 @@ def is_duplicate(new_title, existing_titles, threshold=0.5):
             return True
     return False
 
-def get_news(feed_url, max_items=5):
-    feed = feedparser.parse(feed_url)
-    results = []
+def get_news_from_multiple(urls, max_items=5):
+    """여러 URL에서 뉴스를 수집해 섞어서 다양하게"""
+    all_entries = []
     now_kst = datetime.now(KST)
     today_formats = [
         now_kst.strftime('%Y-%m-%d'),
         now_kst.strftime('%d %b %Y'),
         now_kst.strftime('%a, %d %b %Y'),
     ]
-    for entry in feed.entries:
-        pub = entry.get('published', '')
-        if not any(t in pub for t in today_formats):
-            yesterday_utc = datetime.now(pytz.UTC).strftime('%d %b %Y')
-            if yesterday_utc not in pub:
+    yesterday_utc = datetime.now(pytz.UTC).strftime('%d %b %Y')
+    
+    for url in urls:
+        feed = feedparser.parse(url)
+        for entry in feed.entries[:10]:  # URL당 상위 10개만
+            pub = entry.get('published', '')
+            if not any(t in pub for t in today_formats) and yesterday_utc not in pub:
                 continue
-        if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
+            if any(b in entry.get('link', '') + entry.get('title', '') for b in BLOCKED):
+                continue
+            if is_spam(entry.title):
+                continue
+            all_entries.append((entry.title, entry.get('link', '')))
+    
+    # 섞기 (다양성 확보)
+    random.shuffle(all_entries)
+    
+    # 중복 제거하면서 max_items까지 추리기
+    results = []
+    for title, link in all_entries:
+        if is_duplicate(title, [t for t, _ in results]):
             continue
-        if is_spam(entry.title):
-            continue
-        if is_duplicate(entry.title, [t for t, _ in results]):
-            continue
-        results.append((entry.title, entry.get('link', '')))
+        results.append((title, link))
         if len(results) >= max_items:
             break
     return results
@@ -98,7 +128,7 @@ def get_news(feed_url, max_items=5):
 message = f"📊 오늘의 뉴스 ({today})\n\n"
 
 for feed in FEEDS:
-    news = get_news(feed['url'], feed['max_items'])
+    news = get_news_from_multiple(feed['urls'], feed['max_items'])
     message += f"{feed['label']}\n"
     if news:
         for i, (title, link) in enumerate(news, 1):
